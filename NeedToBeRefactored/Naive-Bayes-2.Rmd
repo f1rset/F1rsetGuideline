@@ -1,0 +1,473 @@
+---
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Probability and Statistics
+
+# Lab Assignment 1: Naive Bayes Classifier
+
+## Work breakdown
+
+-   *Melnyk Nazar*:
+-   *Name2 Surname2*:
+-   *Name3 Surname3*:
+
+## Introduction
+
+During the first three weeks, you learned a couple of essential notions
+and theorems, and one of the most important among them is the **Bayes
+theorem**.
+
+**Naive Bayes Classifier** is a simple algorithm, which is based on
+**Bayes theorem** and used for solving classification problems.
+**Classification problem** is a problem in which an observation has to
+be classified in one of the $n$ classes based on its similarity with
+observations in each class.
+
+It is a **probabilistic classifier**, which means it predicts based on
+the probability of an observation belonging to each class. To compute
+it, this algorithm uses **Bayes' formula,** that you probably already
+came across in **Lesson 3:**
+$$\mathsf{P}(\mathrm{class}\mid \mathrm{observation})=\frac{\mathsf{P}(\mathrm{observation}\mid\mathrm{class})\mathsf{P}(\mathrm{class})}{\mathsf{P}(\mathrm{observation})}$$
+
+Under the strong **independence** assumption, one can calculate
+$\mathsf{P}(\mathrm{observation} \mid \mathrm{class})$ as
+$$\mathsf{P}(\mathrm{observation}) = \prod_{i=1}^{n} \mathsf{P}(\mathrm{feature}_i), \qquad \mathsf{P}(\mathrm{observation} \mid \mathrm{class}) = \prod_{i=1}^{n} \mathsf{P}(\mathrm{feature}_i \mid \mathrm{class}),$$
+where $n$ is the total number of features describing a given observation
+(*For example, if an observation is presented as a sentence, then each
+word can be a feature*). Thus,
+$\mathsf{P}(\mathrm{class}|\mathrm{observation})$ now can be calculated
+as
+
+$$\mathsf{P}(\mathrm{class} \mid \mathrm{\mathrm{observation}}) = \mathsf{P}(\mathrm{class})\times \prod_{i=1}^{n}\frac{\mathsf{P}(\mathrm{feature}_i\mid \mathrm{class})}{\mathsf{P}(\mathrm{feature}_i)}\tag{1}$$
+
+All the terms on the right-hand side can be estimated as corresponding
+relative frequencies using available data\
+
+**See [*this
+link*](https://www.javatpoint.com/machine-learning-naive-bayes-classifier)
+for more detailed explanations & examples :) Also you can watch [*this
+video*](https://youtu.be/O2L2Uv9pdDA?si=-ohkHVDuu3sLLGMq) for more
+examples!**
+
+## Data description
+
+There are 5 datasets uploaded on the cms (data.zip)
+
+To determine your variant, take your team number from the list of teams
+on cms and take *mod 5* - this is the number of your data set.
+
+-   **0 - authors** This data set consists of citations of three famous
+    writers: Edgar Alan Poe, Mary Wollstonecraft Shelley and HP
+    Lovecraft. The task with this data set is to classify a piece of
+    text with the author who was more likely to write it.
+
+-   **1 - discrimination** This data set consists of tweets that have
+    discriminatory (sexism or racism) messages or of tweets that are of
+    neutral mood. The task is to determine whether a given tweet has
+    discriminatory mood or does not.
+
+-   **2 - fake news** This data set contains data of American news: a
+    headline and an abstract of the article. Each piece of news is
+    classified as fake or credible. The task is to classify the news
+    from test.csv as credible or fake.
+
+-   **3 - sentiment** All the text messages contained in this data set
+    are labeled with three sentiments: positive, neutral or negative.
+    The task is to classify some text message as the one of positive
+    mood, negative or neutral.
+
+-   **4 - spam** This last data set contains SMS messages classified as
+    spam or non-spam (ham in the data set). The task is to determine
+    whether a given message is spam or non-spam.
+
+Each data set consists of two files: *train.csv* and *test.csv*. The
+first one is used to find the probabilities of the corresponding classes
+and the second one is used to test your classifier afterwards. Note that
+it is crucial to randomly split your data into training and testing
+parts to test the classifierʼs possibilities on the unseen data.
+
+```{r}
+# here goes a list of recommended libraries,
+# though you may install other ones if they are needed
+#Приклад для інсталяції: install.packages("tidytext") (ранити в консолі)
+library(tidytext)
+library(readr)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(wordcloud)
+library(RColorBrewer)
+library(widyr)
+```
+
+## Outline of the work
+
+1.  **Data pre-processing** (includes removing punctuation marks and
+    stop words, representing each message as a bag-of-words)
+2.  **Data visualization** (it's time to plot your data!)
+3.  **Classifier implementation** (using the training set, calculate all
+    the conditional probabilities in formula (1))
+4.  **Measurements of effectiveness of your classifier** (use the
+    results from the previous step to predict classes for messages in
+    the testing set and measure the accuracy, precision and recall, F1
+    score metric etc)
+5.  **Conclusions**
+
+*!! do not forget to submit both the (compiled) Rmd source file and the
+.html output !!*
+
+## Data pre-processing
+
+-   Read the *.csv* data files.
+-   Сlear your data from punctuation or other unneeded symbols.
+-   Clear you data from stop words. You don't want words as is, and, or
+    etc. to affect your probabilities distributions, so it is a wise
+    decision to get rid of them. Find list of stop words in the cms
+    under the lab task.
+-   Represent each test message as its bag-of-words. Here:
+    <https://machinelearningmastery.com/gentle-introduction-bag-words-model/>
+    you can find general introduction to the bag-of-words model and
+    examples on to create it.
+-   It is highly recommended to get familiar with R dataframes, it would
+    make the work much easier to do.
+-   Useful links:
+    -   <https://steviep42.github.io/webscraping/book/bagofwords.html#tidytext> -
+        example of using *tidytext* to count frequencies of the words.
+    -   Basics of Text Mining in R:
+        <http://rstudio-pubs-static.s3.amazonaws.com/256588_57b585da6c054349825cba46685d8464.html>
+        . Note that it also includes an example on how to create a bag
+        of words from your text document.
+
+```{r}
+list.files(getwd())
+list.files("0-authors")
+```
+
+```{r}
+test_path <- "0-authors/test.csv"
+train_path <- "0-authors/train.csv"
+
+stop_words <- readLines("0-authors/stop_words.txt")
+# https://stackoverflow.com/questions/27195912/why-does-strsplit-return-a-list
+splitted_stop_words <- strsplit(stop_words, split='\n')
+splitted_stop_words <- splitted_stop_words[[1]]
+```
+
+```{r}
+train <-  read.csv(file = train_path, stringsAsFactors = FALSE)
+test <-  read.csv(file = test_path, stringsAsFactors = FALSE)
+```
+
+```{r}
+# note the power functional features of R bring us! 
+tidy_text <- unnest_tokens(train, 'splitted', 'text', token="words") %>%
+             filter(!splitted %in% stop_words)
+
+tidy_text %>% count(splitted,sort=TRUE)
+```
+
+## Data visualization
+
+Each time you work with some data, you need to understand it before you
+start processing it. R has very powerful tools to make nice plots and
+visualization. Show what are the most common words for negative and
+positive examples as a histogram, word cloud etc. Be creative!
+
+```{r}
+# Осьо наш датасет
+# tidy_text <- data.frame(
+#   X = c(...),
+#   id = c(...),
+#   author = c(...),
+#   splitted = c(...)
+# )
+
+str(tidy_text$splitted)
+```
+
+```{r}
+word_frequencies <- tidy_text %>% count(splitted, sort = TRUE)
+top_words <- word_frequencies %>% top_n(20, n) 
+
+ggplot(top_words, aes(x = reorder(splitted, n), y = n)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +  # Flip coordinates for easier reading of word labels
+  labs(title = "Top 20 Most Frequent Words",
+       x = "Words",
+       y = "Frequency") +
+  theme_minimal()
+```
+
+```{r}
+wordcloud(words = word_frequencies$splitted,    
+          freq = word_frequencies$n,            
+          max.words = 150,                      
+          random.order = FALSE,                 
+          colors = brewer.pal(8, "Dark2"),      
+          scale = c(4, 0.2))                    
+
+```
+
+```{r}
+
+# Створюємо копію, щоб не псувати почищені слова
+tidy_text_copy <- tidy_text
+
+# Створюємо словник емоцій
+positive_words <- readLines("0-authors/positive-words.txt")
+negative_words <- readLines("0-authors/negative-words.txt")
+
+# Додаємо стовпець з емоційною оцінкою
+tidy_text_copy <- tidy_text_copy %>%
+  mutate(emotion = case_when(
+    tidy_text$splitted %in% positive_words ~ "positive",
+    tidy_text$splitted %in% negative_words ~ "negative"
+    # Нейтральні слова не отримують жодного значення
+  ))
+
+# Підрахуйте кількість слів за емоційними категоріями
+emotion_counts <- tidy_text_copy %>%
+  filter(!is.na(emotion)) %>%  # Відфільтровуємо рядки, де емоції не належать до наших категорій (нейтральні слова)
+  group_by(emotion) %>%
+  summarise(count = n(), .groups = 'drop')  # Додано '.groups = 'drop'' для уникнення попередження
+
+# Обчислюємо загальну кількість слів
+total_words <- nrow(tidy_text_copy)
+
+# Додаймо стовпець з відсотками
+emotion_counts <- emotion_counts %>%
+  mutate(percentage = (count / total_words) * 100)
+
+# Нарешті будуємо графік
+ggplot(emotion_counts, aes(x = emotion, y = count, fill = emotion)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = paste0(round(percentage, 1), "%")), 
+            position = position_stack(vjust = 0.5), 
+            color = "black")
+  labs(title = "Emotional distribution",
+       x = "Emotional_category",
+       y = "Words_count") +
+  theme_minimal() +
+  scale_fill_manual(values = c("positive" = "lightblue", "negative" = "salmon"))
+
+```
+
+```{r}
+# Рахуємо слова за емоційним забарвленням кожного автора
+author_emotion_counts <- tidy_text_copy %>%
+  filter(!is.na(emotion)) %>%
+  group_by(author, emotion) %>%
+  summarise(count = n(), .groups = 'drop') %>%
+  # Обчислення загальної кількості слів для кожного автора
+  group_by(author) %>%
+  mutate(total = sum(count),
+         percentage = (count / total) * 100) %>%
+  ungroup()
+
+# Фільтруємо тільки позитивні та негативні емоції, решту псують картину
+author_emotion_counts <- author_emotion_counts %>%
+  filter(emotion %in% c("positive", "negative"))
+
+# Будуємо графік
+ggplot(author_emotion_counts, aes(x = author, y = count, fill = emotion)) +
+  geom_bar(stat = "identity", position = "stack") + 
+  geom_text(aes(label = paste0(count, ", ", round(percentage, 1), "%")), 
+            position = position_stack(vjust = 0.5), 
+            color = "white", size = 5) +  
+  labs(title = "Emotions distribution per Author",
+       x = "Author",
+       y = "Words") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+## Classifier implementation
+
+```{r}
+naiveBayes <- setRefClass("naiveBayes",
+                          
+       # here it would be wise to have some vars to store intermediate result
+       # frequency dict etc. Though pay attention to bag of words! 
+       fields = list(),
+       methods = list(
+                    # prepare your training data as X - bag of words for each of your
+                    # messages and corresponding label for the message encoded as 0 or 1 
+                    # (binary classification task)
+                    fit = function(X, y) {
+                          priors <- table(y) / length(y)
+                        # Count word occurrences in the training set (P(feature_i | class))
+                        word_counts <- X %>%
+                        bind_cols(y) %>%
+                        group_by(y) %>%
+                        count(splitted) %>%
+                        spread(y, n, fill = 0)
+                        # Compute likelihoods and store in the class field for future use
+                        self$priors <- priors
+                        self$likelihoods <- likelihoods
+                      },
+                    
+                    # return prediction for a single message 
+                    predict = function(message)
+                    {
+                         # Convert the message into bag-of-words format
+                        words <- unlist(strsplit(message, "\\s+"))
+
+                        # Initialize the probability scores with the prior probabilities
+                        class_probs <- log(priors)  # Use log to avoid underflow during multiplication
+
+                        for (word in words) {
+                            if (word %in% likelihoods$splitted) {
+                            # Multiply with the corresponding likelihood for each class
+                            class_probs <- class_probs + log(likelihoods[word, ])
+                            }
+                        }
+
+                        # Return the class with the highest probability
+                        class <- which.max(class_probs)
+                        return(class)
+                    },
+                    
+                    # score you test set so to get the understanding how well you model
+                    # works.
+                    # look at f1 score or precision and recall
+                    # visualize them 
+                    # try how well your model generalizes to real world data! 
+                    score = function(X_test, y_test)
+                    {
+                         predictions <- sapply(X_test$text, predict)
+                        
+                        # Calculate accuracy
+                        accuracy <- mean(predictions == y_test)
+                        
+                        # Confusion matrix for precision and recall
+                        confusion <- table(predictions, y_test)
+                        
+                        precision <- confusion[2,2] / sum(confusion[2, ])
+                        recall <- confusion[2,2] / sum(confusion[,2])
+                          f1_score <- 2 * ((precision * recall) / (precision + recall))
+                        
+                        # Store metrics in the object or return them as a list
+                        metrics <- list(
+                            accuracy = accuracy,
+                            precision = precision,
+                            recall = recall,
+                            f1_score = f1_score,
+                            confusion = confusion
+                        )
+                        
+                        return(metrics)
+                    }
+))
+
+#model = naiveBayes()
+#model$fit()
+```
+
+## Measure effectiveness of your classifier
+
+-   Note that accuracy is not always a good metric for your classifier.
+    Look at precision and recall curves, F1 score metric.
+
+    When evaluating the model, it's important to understand the
+    different types of classification results:
+
+    -   A ***true positive*** result is one where the model correctly
+        predicts the positive class.
+    -   A ***true negative*** result is one where the model correctly
+        predicts the negative class.
+    -   A ***false positive*** result is one where the model incorrectly
+        predicts the positive class when it is actually negative.
+    -   A ***false negative*** result is one where the model incorrectly
+        predicts the negative class when it is actually positive.
+
+    Precision measures the proportion of true positive predictions among
+    all positive predictions made by the model.
+
+    $$
+    Precision = \frac{TP}{TP+FP}
+    $$
+
+    Recall, on the other hand, measures the proportion of true positives
+    identified out of all actual positive cases.
+
+    $$
+    Recall = \frac{TP}{TP+FN}
+    $$
+
+    F1 score is the harmonic mean of both precision and recall.
+
+    $$
+    F1 = \frac{2\times Precision \times Recall}{Precision + Recall}
+    $$
+
+    **See [this
+    link](https://cohere.com/blog/classification-eval-metrics) to find
+    more information about metrics.**
+
+```{r}
+
+X <- tidy_text$splitted
+y <- tidy_text$author
+
+model <- naiveBayes()
+model$fit(X, y)
+
+predicted_labels <- sapply(tidy_test$splitted, model$predict)
+actual_labels <- tidy_test$author
+
+
+```
+
+-   Visualize them.
+
+```{r}
+conf_matrix <- table(predicted_labels, actual_labels)
+
+results <- data.frame(
+  Author = c("HP Lovecraft", "Edgar Allan Poe", "Mary Wollstonecraft Shelley"),
+  TP = integer(3),
+  TN = integer(3),
+  FP = integer(3),
+  FN = integer(3)
+)
+
+
+for (i in 1:3) {
+  results$TP[i] <- conf_matrix[i, i]
+  results$FP[i] <- sum(conf_matrix[, i]) - conf_matrix[i, i]
+  results$FN[i] <- sum(conf_matrix[i, ]) - conf_matrix[i, i]
+  results$TN[i] <- sum(conf_matrix) - (results$TP[i] + results$FP[i] + results$FN[i])
+}
+
+print(results)
+
+
+ggplot(results, aes(x = Author, y = TP, fill = Author)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "True Positives for Each Author", y = "True Positives")
+
+
+```
+
+-   Show failure cases.
+
+## Conclusions
+
+Summarize your work by explaining in a few sentences the points listed
+below.
+
+-   Describe the method implemented in general. Show what are
+    mathematical foundations you are basing your solution on.
+-   List pros and cons of the method. This should include the
+    limitations of your method, all the assumption you make about the
+    nature of your data etc.
+-   Explain why accuracy is not a good choice for the base metrics for
+    classification tasks. Why F1 score is always preferable?
